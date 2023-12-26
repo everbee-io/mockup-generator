@@ -15,68 +15,74 @@ function App() {
 
   const getProductData = useCallback(async () => {
     if (!productData) {
-      console.log('hello');
       const response = await fetch(`${apiBaseURL}/orders/data-for-preview-mockup?catalogSKUId=${catalogSKUId}&productId=${productId}`);
       const data = await response.json();
-      console.log('data.result', data.result);
       setProductData(data.result);
     }
-  }, [apiBaseURL, catalogSKUId, productId, productData]);
+  }, [productData, apiBaseURL, catalogSKUId, productId]);
 
-  const processAngles = async (data: any, angles: any) => {
+  const processAngles = useCallback(async () => {
+    const data = productData;
     const images: any = {};
-    await Promise.all(
-      angles.map(async (angle: any) => {
-        const app = new PIXI.Application({
-          width: data.originalWidth,
-          height: data.originalHeight,
-          backgroundColor: 0xffffff,
-        });
-        const loader = new Loader();
-        setLoading(true);
-        const image: any = await new Promise(async (resolve) => {
-          await setupPixi(
-            data.colorName.toLowerCase().includes('heather') ? data.productMainImages[angle].heather : data.productMainImages[angle].normal,
-            getAlphaUrl(angle, data.colorName, data),
-            angle === 'front' ? data.frontDesignFile : data.backDesign,
-            data.productAlphaImages[angle].normal,
-            data.boundaryWidth[angle],
-            data.boundaryHeight[angle],
-            data.boundaryX[angle],
-            data.boundaryY[angle],
-            data.colorName + angle,
-            data.curvesDifficulty,
-            `${data.colorCode}`,
-            angle,
-            resolve,
-            app,
-            data.originalWidth,
-            data.originalHeight,
-            loader,
-            'full',
-            'full',
-          )
-        });
-        const imageBlob = convertB64toBlob(image.src);
-        const formData = new FormData();
-        formData.set('images', imageBlob, `${angle}previewFile-${productId}.png`);
-        const request = await fetch(`${apiBaseURL}/users/temp-gallery`, {
-          body: formData,
-          method: 'POST'
-        });
-        const { src } = await request.json();
-        images[angle] = src;
-        setLoading(false);
-      })
-    );
-    return images;
-  };
+    if (data !== undefined) {
+      const angles = productData.frontDesignFile && productData.backDesign ? ['front', 'back'] : 
+    productData.frontDesignFile && !productData.backDesign ? ['front'] : ['back'];
+      await Promise.all(
+        angles.map(async (angle: any) => {
+          const app = new PIXI.Application({
+            width: data.originalWidth,
+            height: data.originalHeight,
+            backgroundColor: 0xffffff,
+          });
+          const loader = new Loader();
+          setLoading(true);
+          const image: any = await new Promise(async (resolve) => {
+            await setupPixi(
+              data.colorName.toLowerCase().includes('heather') ? data.productMainImages[angle].heather : data.productMainImages[angle].normal,
+              getAlphaUrl(angle, data.colorName, data),
+              angle === 'front' ? data.frontDesignFile : data.backDesign,
+              data.productAlphaImages[angle].normal,
+              data.boundaryWidth[angle],
+              data.boundaryHeight[angle],
+              data.boundaryX[angle],
+              data.boundaryY[angle],
+              data.colorName + angle,
+              data.curvesDifficulty,
+              `${data.colorCode}`,
+              angle,
+              resolve,
+              app,
+              data.originalWidth,
+              data.originalHeight,
+              loader,
+              'full',
+              'full',
+            )
+          });
+          const imageBlob = convertB64toBlob(image.src);
+          const formData = new FormData();
+          formData.set('images', imageBlob, `${angle}previewFile-${productId}.png`);
+          const request = await fetch(`${apiBaseURL}/users/temp-gallery`, {
+            body: formData,
+            method: 'POST'
+          });
+          const { src } = await request.json();
+          images[angle] = src;
+          setLoading(false);
+        })
+      );
+      console.log('images', images);
+      return images;
+    }
+  }, [apiBaseURL, productId, productData]);
+
 
   useEffect(() => {
-    console.log('Before getProductData');
+    processAngles();
+  }, [processAngles]);
+
+  useEffect(() => {
     getProductData();
-    console.log('After getProductData');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getProductData]);
   
 
