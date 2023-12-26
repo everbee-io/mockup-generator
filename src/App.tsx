@@ -7,6 +7,7 @@ import setupPixi, { convertB64toBlob, getAlphaUrl } from "./pixi/pixi-func";
 function App() {
   const [mockupLoader, setLoading] = useState(false);
   const [productData, setProductData] = useState<any>();
+  const [isDone, setIsDone] = useState('')
   const searchParams = new URLSearchParams(window.location.search);
   const orderId = searchParams.get('orderId');
   const catalogSKUId = searchParams.get('catalogSKUId');
@@ -25,6 +26,7 @@ function App() {
     const data = productData;
     const images: any = {};
     if (data !== undefined) {
+      setLoading(true);
       const angles = productData.frontDesignFile && productData.backDesign ? ['front', 'back'] : 
     productData.frontDesignFile && !productData.backDesign ? ['front'] : ['back'];
       await Promise.all(
@@ -71,7 +73,7 @@ function App() {
           setLoading(false);
         })
       );
-      console.log('images', images);
+      setIsDone('Process Completed');
       return images;
     }
   }, [apiBaseURL, productId, productData]);
@@ -89,6 +91,7 @@ function App() {
   return (
     <>
       {mockupLoader && <p>Loading.....</p>}
+      <p>{isDone}</p>
     </>
   );
 }
