@@ -1,22 +1,28 @@
 import { nanoid } from 'nanoid';
 import * as PIXI from 'pixi.js';
 
-export async function getBase64ImageFromUrl(imageUrl: string) {
-  var res = await fetch(imageUrl);
-  var blob = await res.blob();
+export const convertB64toBlob = (
+  b64Data: string,
+  contentType: string = 'image/png',
+  sliceSize: number = 512,
+) => {
+    const byteCharacters = atob(b64Data.split('base64,')[1]);
+    const byteArrays = [];
 
-  return new Promise((resolve, reject) => {
-    var reader  = new FileReader();
-    reader.addEventListener("load", function () {
-        resolve(reader.result);
-    }, false);
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      const slice = byteCharacters.slice(offset, offset + sliceSize);
 
-    reader.onerror = () => {
-      return reject();
-    };
-    reader.readAsDataURL(blob);
-  })
-}
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+  const blob = new Blob(byteArrays, { type: contentType });
+  return blob
+};
 
 export const getAlphaUrl = (angle: string, colorName: string, data: any) => {
   if (colorName.toLowerCase().includes('heather')) {
@@ -25,10 +31,6 @@ export const getAlphaUrl = (angle: string, colorName: string, data: any) => {
     return data.productAlphaImages[angle].normal;
   }
 }
-
-getBase64ImageFromUrl('https://graph.facebook.com/3938027626271800/picture?type=normal')
-    .then(result => console.log(result))
-    .catch(err => console.error(err));
 
 async function setupPixi(
   productImageURL: string,
@@ -42,15 +44,16 @@ async function setupPixi(
   id: number | string,
   curves_difficulty: string,
   colorCode: string,
+  sideOfMockup: 'front' | 'back',
+  resolve: any,
   app?: PIXI.Application<PIXI.ICanvas>,
   orgWidth?: any,
   orgHeight?: any,
   loaderPixi?: any,
   reqWidth?: any,
   reqHeight?: any,
-  sideOfMockup?: 'front' | 'back',
 ): Promise<HTMLImageElement> {
-  let image: HTMLImageElement;
+  let image: any;
   const uniqueId = nanoid(5);
   const loader = loaderPixi;
   const Sprite = PIXI.Sprite;
@@ -150,7 +153,7 @@ async function setupPixi(
       });
 
     await app.stage.removeChildren();
-    return image;
+    resolve(image);
   }
 
   return promise.then((value) => value);
