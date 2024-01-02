@@ -73,7 +73,6 @@ function App() {
           setLoading(false);
         })
       );
-      setIsDone('Process Completed');
       console.log('images', images);
       let dataForAPI: any = { 
         catalogSKUId,
@@ -87,6 +86,7 @@ function App() {
       });
       const responsee = await response.json();
       console.log('response', responsee);
+      setIsDone('Process Completed');
       return images;
     }
   }, [apiBaseURL, productId, productData]);
