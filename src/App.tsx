@@ -66,10 +66,14 @@ function App() {
           formData.set('images', imageBlob, `${angle}previewFile-${productId}.png`);
           const request = await fetch(`${apiBaseURL}/users/temp-gallery`, {
             body: formData,
-            method: 'POST'
+            method: 'POST',
           });
           const { src } = await request.json();
-          images[angle] = src;
+          if (angle === 'front') {
+            images['frontPreviewFile'] = src;
+          } else {
+            images['backPreviewFile'] = src;
+          }
           setLoading(false);
         })
       );
@@ -79,10 +83,13 @@ function App() {
         productId,
         orderId
       };
-      dataForAPI = { ...images, dataForAPI };
+      dataForAPI = { ...images, ...dataForAPI };
       const response = await fetch(`${apiBaseURL}/orders/data-for-preview-mockup`, {
         method: 'POST',
-        body: dataForAPI
+        body: JSON.stringify(dataForAPI),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       const responsee = await response.json();
       console.log('response', responsee);
