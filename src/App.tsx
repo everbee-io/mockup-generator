@@ -74,6 +74,19 @@ function App() {
         })
       );
       setIsDone('Process Completed');
+      console.log('images', images);
+      let dataForAPI: any = { 
+        catalogSKUId,
+        productId,
+        orderId
+      };
+      dataForAPI = { ...images, dataForAPI };
+      const response = await fetch(`${apiBaseURL}/orders/data-for-preview-mockup`, {
+        method: 'POST',
+        body: dataForAPI
+      });
+      const responsee = await response.json();
+      console.log('response', responsee);
       return images;
     }
   }, [apiBaseURL, productId, productData]);
