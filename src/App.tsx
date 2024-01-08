@@ -34,8 +34,7 @@ function App() {
           const app = new PIXI.Application({
             width: data.originalWidth,
             height: data.originalHeight,
-            backgroundColor: 0xffffff,
-            forceCanvas: true
+            backgroundColor: 0xffffff
           });
           const loader = new Loader();
           setLoading(true);
