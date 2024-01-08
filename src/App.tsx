@@ -35,6 +35,7 @@ function App() {
             width: data.originalWidth,
             height: data.originalHeight,
             backgroundColor: 0xffffff,
+            forceCanvas: true
           });
           const loader = new Loader();
           setLoading(true);
